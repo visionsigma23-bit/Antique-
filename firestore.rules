@@ -1,0 +1,303 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Shared primitive helpers
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isPrimaryOwner() {
+      return isVerifiedUser() && request.auth.token.email == 'visionsigma23@gmail.com';
+    }
+
+    function isAdmin() {
+      return isPrimaryOwner() || (
+        isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation blueprint: Category
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'slug', 'description', 'image', 'sortOrder', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['name', 'slug', 'description', 'image', 'sortOrder', 'createdAt', 'updatedAt'])
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 60
+        && data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 64 && data.slug.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.description is string && data.description.size() <= 300
+        && data.image is string && data.image.size() <= 300000
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 10000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation blueprint: Product
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'categoryId', 'categoryName', 'price', 'description', 'details', 'availability', 'featured', 'bestSeller', 'images', 'sortOrder', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['name', 'categoryId', 'categoryName', 'price', 'description', 'details', 'availability', 'featured', 'bestSeller', 'images', 'sortOrder', 'createdAt', 'updatedAt'])
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && isValidId(data.categoryId) && data.categoryId.size() <= 64
+        && data.categoryName is string && data.categoryName.size() >= 1 && data.categoryName.size() <= 80
+        && data.price is number && data.price >= 0 && data.price <= 100000000
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 2000
+        && data.details is list && data.details.size() <= 10
+        && (data.details.size() == 0 || (data.details[0] is string && data.details[0].size() <= 240))
+        && data.availability in ['In Stock', 'Limited Piece', 'Made to Order', 'Out of Stock']
+        && data.featured is bool
+        && data.bestSeller is bool
+        && data.images is list && data.images.size() >= 1 && data.images.size() <= 4
+        && data.images[0] is string && data.images[0].size() >= 1 && data.images[0].size() <= 300000
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 10000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation blueprint: SiteSettings
+    function isValidSiteSettings(data) {
+      return data.keys().hasAll([
+          'brandName', 'heroHeadline', 'heroSubtitle', 'promoTitle', 'promoSubtitle',
+          'promoCtaText', 'aboutTitle', 'aboutBody', 'whatsappNumber', 'phoneDisplay',
+          'emailDisplay', 'addressDisplay', 'instagramHandle', 'facebookUrl', 'pinterestUrl',
+          'currencySymbol', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'brandName', 'heroHeadline', 'heroSubtitle', 'promoTitle', 'promoSubtitle',
+          'promoCtaText', 'aboutTitle', 'aboutBody', 'whatsappNumber', 'phoneDisplay',
+          'emailDisplay', 'addressDisplay', 'instagramHandle', 'facebookUrl', 'pinterestUrl',
+          'currencySymbol', 'updatedAt'
+        ])
+        && data.brandName is string && data.brandName.size() >= 1 && data.brandName.size() <= 40
+        && data.heroHeadline is string && data.heroHeadline.size() >= 1 && data.heroHeadline.size() <= 140
+        && data.heroSubtitle is string && data.heroSubtitle.size() >= 1 && data.heroSubtitle.size() <= 400
+        && data.promoTitle is string && data.promoTitle.size() >= 1 && data.promoTitle.size() <= 140
+        && data.promoSubtitle is string && data.promoSubtitle.size() >= 1 && data.promoSubtitle.size() <= 400
+        && data.promoCtaText is string && data.promoCtaText.size() >= 1 && data.promoCtaText.size() <= 60
+        && data.aboutTitle is string && data.aboutTitle.size() >= 1 && data.aboutTitle.size() <= 140
+        && data.aboutBody is string && data.aboutBody.size() >= 1 && data.aboutBody.size() <= 2000
+        && data.whatsappNumber is string && data.whatsappNumber.size() <= 30
+        && data.phoneDisplay is string && data.phoneDisplay.size() <= 60
+        && data.emailDisplay is string && data.emailDisplay.size() <= 120
+        && data.addressDisplay is string && data.addressDisplay.size() <= 240
+        && data.instagramHandle is string && data.instagramHandle.size() <= 80
+        && data.facebookUrl is string && data.facebookUrl.size() <= 200
+        && data.pinterestUrl is string && data.pinterestUrl.size() <= 200
+        && data.currencySymbol is string && data.currencySymbol.size() >= 1 && data.currencySymbol.size() <= 8
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation blueprint: Inquiry
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'subject', 'message', 'status', 'createdAt'])
+        && data.keys().hasOnly(['name', 'email', 'phone', 'subject', 'message', 'status', 'createdAt'])
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 150
+        && data.phone is string && data.phone.size() <= 40
+        && data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 150
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
+        && data.status in ['new', 'reviewed']
+        && data.createdAt is timestamp;
+    }
+
+    // Validation blueprint: AdminUser
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt'])
+        && data.keys().hasOnly(['email', 'role', 'createdAt'])
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 150
+        && data.role == 'admin'
+        && data.createdAt is timestamp;
+    }
+
+    // Validation blueprint: PushSubscription
+    function isValidPushSubscription(data) {
+      return data.keys().hasAll(['token', 'platform', 'userAgent', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['token', 'platform', 'userAgent', 'status', 'createdAt', 'updatedAt'])
+        && data.token is string && data.token.size() >= 20 && data.token.size() <= 512
+        && data.platform is string && data.platform.size() <= 64
+        && data.userAgent is string && data.userAgent.size() <= 256
+        && data.status in ['active', 'disabled']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation blueprint: PushNotification
+    function isValidPushNotification(data) {
+      return data.keys().hasAll([
+          'title', 'message', 'category', 'imageUrl', 'destinationUrl',
+          'targetCount', 'successCount', 'failureCount', 'prunedCount',
+          'status', 'sentByEmail', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'title', 'message', 'category', 'imageUrl', 'destinationUrl',
+          'targetCount', 'successCount', 'failureCount', 'prunedCount',
+          'status', 'sentByEmail', 'createdAt'
+        ])
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 100
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 300
+        && data.category in ['new_arrival', 'special_offer', 'collection', 'announcement']
+        && data.imageUrl is string && data.imageUrl.size() <= 500
+        && data.destinationUrl is string && data.destinationUrl.size() >= 1 && data.destinationUrl.size() <= 300
+        && data.targetCount is number && data.targetCount >= 0 && data.targetCount <= 1000000
+        && data.successCount is number && data.successCount >= 0 && data.successCount <= 1000000
+        && data.failureCount is number && data.failureCount >= 0 && data.failureCount <= 1000000
+        && data.prunedCount is number && data.prunedCount >= 0 && data.prunedCount <= 1000000
+        && data.status in ['sent', 'partial', 'failed']
+        && data.sentByEmail is string && data.sentByEmail.size() >= 3 && data.sentByEmail.size() <= 150
+        && data.createdAt is timestamp;
+    }
+
+    // Categories collection (publicly browsable storefront catalog)
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(categoryId)
+        && isValidCategory(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(categoryId)
+        && isValidCategory(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'slug', 'description', 'image', 'sortOrder', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(categoryId);
+    }
+
+    // Products collection (publicly browsable storefront catalog)
+    match /products/{productId} {
+      allow get: if isValidId(productId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(productId)
+        && isValidProduct(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (
+          exists(/databases/$(database)/documents/categories/$(incoming().categoryId)) ||
+          existsAfter(/databases/$(database)/documents/categories/$(incoming().categoryId))
+        );
+      allow update: if isAdmin()
+        && isValidId(productId)
+        && isValidProduct(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'categoryId', 'categoryName', 'price', 'description',
+          'details', 'availability', 'featured', 'bestSeller', 'images',
+          'sortOrder', 'updatedAt'
+        ])
+        && (
+          exists(/databases/$(database)/documents/categories/$(incoming().categoryId)) ||
+          existsAfter(/databases/$(database)/documents/categories/$(incoming().categoryId))
+        );
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // Site Settings collection (public storefront copy & public business contact details)
+    match /siteSettings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(settingId)
+        && isValidSiteSettings(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(settingId)
+        && isValidSiteSettings(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'brandName', 'heroHeadline', 'heroSubtitle', 'promoTitle', 'promoSubtitle',
+          'promoCtaText', 'aboutTitle', 'aboutBody', 'whatsappNumber', 'phoneDisplay',
+          'emailDisplay', 'addressDisplay', 'instagramHandle', 'facebookUrl', 'pinterestUrl',
+          'currencySymbol', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Customer contact inquiries (PII protected: visitor create-only, admin read/update/delete)
+    match /inquiries/{inquiryId} {
+      allow get: if isAdmin() && isValidId(inquiryId);
+      allow list: if isAdmin();
+      allow create: if isValidId(inquiryId)
+        && isValidInquiry(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(inquiryId)
+        && isValidInquiry(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isAdmin() && isValidId(inquiryId);
+    }
+
+    // Admin registry
+    match /admins/{adminUid} {
+      allow get: if isAdmin() && isValidId(adminUid);
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(adminUid)
+        && isValidAdminUser(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(adminUid);
+    }
+
+    // Web Push Subscriptions (device tokens protected: no public get/list; deterministic SHA-256 ID)
+    match /pushSubscriptions/{subscriptionId} {
+      allow get: if isAdmin() && isValidId(subscriptionId);
+      allow list: if isAdmin();
+      allow create: if isValidId(subscriptionId)
+        && subscriptionId.size() == 64
+        && isValidPushSubscription(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(subscriptionId)
+        && subscriptionId.size() == 64
+        && isValidPushSubscription(incoming())
+        && incoming().token == existing().token
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'platform', 'userAgent', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(subscriptionId);
+    }
+
+    // Admin Push Notification history & delivery logs
+    match /notifications/{notificationId} {
+      allow get: if isAdmin() && isValidId(notificationId);
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(notificationId)
+        && isValidPushNotification(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(notificationId);
+    }
+
+    // Server-hosted notification media (accessed exclusively via Admin SDK)
+    match /notificationMedia/{mediaId} {
+      allow read, write: if false;
+    }
+  }
+}

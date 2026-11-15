@@ -1,0 +1,465 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "An antique decorative item or home decor piece in the ANTIKER catalog.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Display name of the decorative product."
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Identifier of the parent category."
+        },
+        "categoryName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Human-readable category name."
+        },
+        "price": {
+          "type": "number",
+          "description": "Editable price in store currency. 0 indicates price upon inquiry."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Editorial description of the piece."
+        },
+        "details": {
+          "type": "array",
+          "description": "Up to 10 key product specifications (dimensions, material, finish)."
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["In Stock", "Limited Piece", "Made to Order", "Out of Stock"],
+          "description": "Current availability status."
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Whether the product appears in the homepage featured showcase."
+        },
+        "bestSeller": {
+          "type": "boolean",
+          "description": "Whether the product is highlighted as a best-selling piece."
+        },
+        "images": {
+          "type": "array",
+          "description": "Up to 4 product image URLs or compressed image data strings."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Manual display sort order."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "name",
+        "categoryId",
+        "categoryName",
+        "price",
+        "description",
+        "details",
+        "availability",
+        "featured",
+        "bestSeller",
+        "images",
+        "sortOrder",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A decor product category managed by the ANTIKER owner.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Category display name."
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "URL-safe category slug."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Short editorial summary for the category."
+        },
+        "image": {
+          "type": "string",
+          "maxLength": 300000,
+          "description": "Category cover image URL or compressed data URI."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Display ordering index."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "name",
+        "slug",
+        "description",
+        "image",
+        "sortOrder",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Editable storefront homepage content, contact details, and WhatsApp configuration.",
+      "type": "object",
+      "properties": {
+        "brandName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "heroHeadline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "heroSubtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "promoTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "promoSubtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "promoCtaText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "aboutTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "aboutBody": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "phoneDisplay": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "emailDisplay": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "addressDisplay": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "instagramHandle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "facebookUrl": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "pinterestUrl": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "currencySymbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "brandName",
+        "heroHeadline",
+        "heroSubtitle",
+        "promoTitle",
+        "promoSubtitle",
+        "promoCtaText",
+        "aboutTitle",
+        "aboutBody",
+        "whatsappNumber",
+        "phoneDisplay",
+        "emailDisplay",
+        "addressDisplay",
+        "instagramHandle",
+        "facebookUrl",
+        "pinterestUrl",
+        "currencySymbol",
+        "updatedAt"
+      ]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "A customer contact inquiry submitted from the Contact page.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 150
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "reviewed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "email", "phone", "subject", "message", "status", "createdAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized ANTIKER store administrator record.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 150
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["email", "role", "createdAt"]
+    },
+    "PushSubscription": {
+      "title": "PushSubscription",
+      "description": "Registered Web Push FCM device token keyed by deterministic SHA-256 token hash to prevent duplicate device subscriptions.",
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 512,
+          "description": "Firebase Cloud Messaging device registration token."
+        },
+        "platform": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Device platform summary (browser / standalone PWA / OS)."
+        },
+        "userAgent": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Truncated client user-agent string for diagnostics."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "disabled"],
+          "description": "Subscription state."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["token", "platform", "userAgent", "status", "createdAt", "updatedAt"]
+    },
+    "PushNotification": {
+      "title": "PushNotification",
+      "description": "Audit log and delivery summary of an admin-dispatched Web Push broadcast.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "category": {
+          "type": "string",
+          "enum": ["new_arrival", "special_offer", "collection", "announcement"]
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "destinationUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "targetCount": {
+          "type": "number"
+        },
+        "successCount": {
+          "type": "number"
+        },
+        "failureCount": {
+          "type": "number"
+        },
+        "prunedCount": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["sent", "partial", "failed"]
+        },
+        "sentByEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 150
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "title",
+        "message",
+        "category",
+        "imageUrl",
+        "destinationUrl",
+        "targetCount",
+        "successCount",
+        "failureCount",
+        "prunedCount",
+        "status",
+        "sentByEmail",
+        "createdAt"
+      ]
+    },
+    "NotificationMedia": {
+      "title": "NotificationMedia",
+      "description": "Server-hosted compressed notification banner image served via /api/push/media/:mediaId.",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "dataBase64": {
+          "type": "string",
+          "maxLength": 350000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["mimeType", "dataBase64", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Publicly readable catalog products; writeable only by verified administrators."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Publicly readable decor categories; writeable only by verified administrators."
+    },
+    "/siteSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSettings" },
+      "description": "Publicly readable storefront copy and contact settings; writeable only by verified administrators."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/Inquiry" },
+      "description": "Customer contact submissions; publicly creatable with strict validation, readable/manageable only by administrators."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin access registry; readable and writeable only by verified administrators."
+    },
+    "/pushSubscriptions/{subscriptionId}": {
+      "schema": { "$ref": "#/entities/PushSubscription" },
+      "description": "FCM Web Push device registrations; readable/deletable only by verified administrators."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/PushNotification" },
+      "description": "Dispatched Web Push campaign history & delivery metrics; readable/manageable only by verified administrators."
+    },
+    "/notificationMedia/{mediaId}": {
+      "schema": { "$ref": "#/entities/NotificationMedia" },
+      "description": "Server-only notification image storage accessed exclusively by Firebase Admin SDK."
+    }
+  }
+}

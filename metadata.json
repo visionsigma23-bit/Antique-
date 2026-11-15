@@ -1,0 +1,6 @@
+{
+  "name": "ANTIKER",
+  "description": "ANTIKER – Curated Antique Decorative Items, Home Décor & Collectibles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
